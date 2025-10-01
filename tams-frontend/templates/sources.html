@@ -1,0 +1,52 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="card">
+    <h2>Sources</h2>
+    <p>Sources represent top-level media sources in TAMS.</p>
+
+    {{if .Sources}}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Label</th>
+                <th>Description</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Sources}}
+            <tr>
+                <td><span class="badge">{{.ID}}</span></td>
+                <td>{{.Label}}</td>
+                <td>{{.Description}}</td>
+                <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p style="margin-top: 1rem; color: #666;">No sources found. Create one below.</p>
+    {{end}}
+</div>
+
+<div class="card">
+    <h2>Create New Source</h2>
+    <form action="/sources/create" method="POST">
+        <div class="form-group">
+            <label for="id">Source ID *</label>
+            <input type="text" id="id" name="id" required placeholder="e.g., source-1">
+        </div>
+        <div class="form-group">
+            <label for="label">Label *</label>
+            <input type="text" id="label" name="label" required placeholder="e.g., Main Camera Feed">
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" placeholder="Optional description"></textarea>
+        </div>
+        <button type="submit">Create Source</button>
+    </form>
+</div>
+{{end}}

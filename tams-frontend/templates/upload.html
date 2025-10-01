@@ -1,0 +1,57 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="card">
+    <h2>Upload Segment</h2>
+    <p>Upload a time-addressable media segment to a flow.</p>
+
+    <form action="/segments/create" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="flow_id">Flow *</label>
+            <select id="flow_id" name="flow_id" required>
+                <option value="">Select a flow</option>
+                {{range .Flows}}
+                <option value="{{.ID}}">{{.Label}} ({{.ID}})</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id">Segment ID *</label>
+            <input type="text" id="id" name="id" required placeholder="e.g., segment-1">
+        </div>
+        <div class="form-group">
+            <label for="timerange_start">Timerange Start (ISO 8601) *</label>
+            <input type="text" id="timerange_start" name="timerange_start" required
+                   placeholder="e.g., 2024-01-01T00:00:00Z">
+            <small style="color: #666; margin-top: 0.25rem;">Format: YYYY-MM-DDTHH:MM:SSZ</small>
+        </div>
+        <div class="form-group">
+            <label for="timerange_end">Timerange End (ISO 8601) *</label>
+            <input type="text" id="timerange_end" name="timerange_end" required
+                   placeholder="e.g., 2024-01-01T00:01:00Z">
+            <small style="color: #666; margin-top: 0.25rem;">Format: YYYY-MM-DDTHH:MM:SSZ</small>
+        </div>
+        <div class="form-group">
+            <label for="file">Media File *</label>
+            <input type="file" id="file" name="file" required>
+        </div>
+        <button type="submit">Upload Segment</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Timestamp Helper</h3>
+    <p>Current time in ISO 8601 format:</p>
+    <pre id="current-time" style="background: #f5f5f5; padding: 1rem; border-radius: 4px; margin-top: 0.5rem;"></pre>
+    <button type="button" onclick="updateTime()">Refresh</button>
+</div>
+
+<script>
+function updateTime() {
+    const now = new Date();
+    document.getElementById('current-time').textContent = now.toISOString();
+}
+updateTime();
+setInterval(updateTime, 1000);
+</script>
+{{end}}

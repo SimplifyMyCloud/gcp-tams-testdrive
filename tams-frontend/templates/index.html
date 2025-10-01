@@ -1,0 +1,28 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="card">
+    <h2>Welcome to TAMS Test Drive</h2>
+    <p>Time Addressable Media Store API test environment on GCP</p>
+</div>
+
+<div class="card">
+    <h2>Quick Start</h2>
+    <ol>
+        <li><strong>Create a Source:</strong> Navigate to Sources and create a new media source</li>
+        <li><strong>Create a Flow:</strong> Navigate to Flows and create a flow within your source</li>
+        <li><strong>Upload Segments:</strong> Navigate to Upload and add timestamped media segments</li>
+    </ol>
+</div>
+
+<div class="card">
+    <h2>About TAMS</h2>
+    <p>TAMS (Time Addressable Media Store) is an API specification for storing, querying, and accessing segmented media using time-based addressing. It enables:</p>
+    <ul style="margin-left: 2rem; margin-top: 1rem;">
+        <li>Time-based media indexing and retrieval</li>
+        <li>Efficient cloud-native media storage</li>
+        <li>Content-centric workflows</li>
+        <li>Immutable media segments with unique timestamps</li>
+    </ul>
+</div>
+{{end}}

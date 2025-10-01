@@ -1,0 +1,41 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="card">
+    <h2>Segments</h2>
+    <p>Segments are time-addressable chunks of media within flows.</p>
+
+    {{if .Segments}}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Flow</th>
+                <th>Time Range Start</th>
+                <th>Time Range End</th>
+                <th>Size</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Segments}}
+            <tr>
+                <td><span class="badge">{{.ID}}</span></td>
+                <td>{{.FlowID}}</td>
+                <td class="timestamp">{{.TimerangeStart}}</td>
+                <td class="timestamp">{{.TimerangeEnd}}</td>
+                <td>{{if .SizeBytes}}{{.SizeBytes}} bytes{{else}}-{{end}}</td>
+                <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p style="margin-top: 1rem; color: #666;">No segments found. Upload segments using the Upload page.</p>
+    {{end}}
+</div>
+
+<div style="margin-top: 1rem;">
+    <a href="/segments/upload" class="btn">Upload New Segment</a>
+</div>
+{{end}}

@@ -1,0 +1,73 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="card">
+    <h2>Flows</h2>
+    <p>Flows represent continuous streams of media within a source.</p>
+
+    {{if .Flows}}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Source</th>
+                <th>Label</th>
+                <th>Format</th>
+                <th>Codec</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Flows}}
+            <tr>
+                <td><span class="badge">{{.ID}}</span></td>
+                <td>{{.SourceID}}</td>
+                <td>{{.Label}}</td>
+                <td>{{.Format}}</td>
+                <td>{{.Codec}}</td>
+                <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p style="margin-top: 1rem; color: #666;">No flows found. Create one below.</p>
+    {{end}}
+</div>
+
+<div class="card">
+    <h2>Create New Flow</h2>
+    <form action="/flows/create" method="POST">
+        <div class="form-group">
+            <label for="source_id">Source *</label>
+            <select id="source_id" name="source_id" required>
+                <option value="">Select a source</option>
+                {{range .Sources}}
+                <option value="{{.ID}}">{{.Label}} ({{.ID}})</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id">Flow ID *</label>
+            <input type="text" id="id" name="id" required placeholder="e.g., flow-1">
+        </div>
+        <div class="form-group">
+            <label for="label">Label *</label>
+            <input type="text" id="label" name="label" required placeholder="e.g., Video Stream">
+        </div>
+        <div class="form-group">
+            <label for="format">Format *</label>
+            <input type="text" id="format" name="format" required placeholder="e.g., video/mp4">
+        </div>
+        <div class="form-group">
+            <label for="codec">Codec</label>
+            <input type="text" id="codec" name="codec" placeholder="e.g., h264">
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" placeholder="Optional description"></textarea>
+        </div>
+        <button type="submit">Create Flow</button>
+    </form>
+</div>
+{{end}}
