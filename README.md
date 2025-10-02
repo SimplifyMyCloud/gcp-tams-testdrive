@@ -71,6 +71,11 @@ Initial deployment takes ~15-20 minutes.
             └─────────────┘ └────────────┘
 ```
 
+**Connectivity Notes**:
+- Cloud Run services connect to Cloud SQL via **Cloud SQL Admin API** (automatic via `INSTANCE_CONNECTION_NAME`)
+- No VPC Access Connector required (simpler, more reliable)
+- All connections encrypted (Cloud SQL Proxy, HTTPS)
+
 ## Features
 
 ### TAMS API Implementation

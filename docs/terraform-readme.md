@@ -12,7 +12,7 @@ Each file manages a specific aspect of the infrastructure following the "do one 
 | `variables.tf` | Input variables and defaults |
 | `outputs.tf` | Output values (URLs, connection strings, etc.) |
 | `apis.tf` | Enable required GCP APIs |
-| `networking.tf` | VPC, subnets, VPC connector, firewall rules |
+| `networking.tf` | VPC, subnets, firewall rules (VPC connector removed) |
 | `cloudsql.tf` | Cloud SQL PostgreSQL instance and database |
 | `storage.tf` | GCS buckets for media and backups |
 | `artifactregistry.tf` | Artifact Registry for Docker images |
@@ -89,17 +89,44 @@ terraform destroy
 The infrastructure is deployed in this order:
 
 1. **APIs** - Enable required GCP services
-2. **Networking** - VPC, subnets, VPC connector
+2. **Networking** - VPC, subnets (no VPC connector needed)
 3. **Storage** - GCS buckets
 4. **Secrets** - Secret Manager for DB password
-5. **Cloud SQL** - PostgreSQL database
+5. **Cloud SQL** - PostgreSQL database (with private and public IP)
 6. **IAM** - Service accounts and permissions
 7. **Artifact Registry** - Container image repository
-8. **Cloud Run API** - TAMS API service
+8. **Cloud Run API** - TAMS API service (connects to Cloud SQL via Admin API)
 9. **Cloud Run Frontend** - Web UI
 10. **IAP** - Identity-Aware Proxy
 
+**Note**: Cloud Run services connect to Cloud SQL using the Cloud SQL Admin API (via `INSTANCE_CONNECTION_NAME` environment variable) instead of VPC connectors. This provides a simpler, more reliable connection method.
+
 Terraform automatically handles dependencies based on resource references.
+
+## Architecture Notes
+
+### Cloud SQL Connectivity
+
+The TAMS deployment uses **Cloud SQL Admin API** for database connections instead of VPC Access Connectors:
+
+- **Cloud Run → Cloud SQL**: Direct connection via Cloud SQL Proxy (automatic)
+- **Environment Variable**: `INSTANCE_CONNECTION_NAME` tells Cloud Run which database to connect to
+- **Authentication**: Service account has `roles/cloudsql.client` permission
+- **Encryption**: Cloud SQL Proxy handles encryption automatically
+- **IP Configuration**: Cloud SQL has both private and public IP enabled
+
+**Why no VPC connector?**
+- VPC connectors can be unreliable and fail to become healthy
+- Cloud SQL Proxy connection is simpler and more direct
+- No additional compute resources needed
+- Still maintains security through IAM and encryption
+
+### Security Model
+
+- **IAP Authentication**: Only users in `iap_users` list can access Cloud Run services
+- **Service Accounts**: Separate service accounts for API and Frontend with minimum required permissions
+- **Secrets**: Database passwords stored in Secret Manager
+- **Encryption**: All connections encrypted (Cloud SQL Proxy, HTTPS)
 
 ## Modifying Infrastructure
 

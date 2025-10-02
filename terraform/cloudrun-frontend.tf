@@ -53,11 +53,6 @@ resource "google_cloud_run_v2_service" "tams_frontend" {
       }
     }
 
-    vpc_access {
-      connector = google_vpc_access_connector.connector.id
-      egress    = "PRIVATE_RANGES_ONLY"
-    }
-
     scaling {
       min_instance_count = 0
       max_instance_count = 5
@@ -76,11 +71,14 @@ resource "google_cloud_run_v2_service" "tams_frontend" {
   ]
 }
 
-# IAM policy for IAP access to Frontend
-resource "google_cloud_run_service_iam_member" "frontend_iap_invoker" {
+# IAM policy - require authentication for Frontend access
+# Only authenticated users in iap_users list can invoke
+resource "google_cloud_run_service_iam_member" "frontend_invoker" {
+  for_each = toset(var.iap_users)
+
   location = google_cloud_run_v2_service.tams_frontend.location
   service  = google_cloud_run_v2_service.tams_frontend.name
   role     = "roles/run.invoker"
-  member   = "allUsers" # IAP will handle authentication
+  member   = each.value
   project  = var.project_id
 }

@@ -33,9 +33,10 @@ resource "google_sql_database_instance" "tams_db" {
     }
 
     ip_configuration {
-      ipv4_enabled    = false
+      ipv4_enabled    = true
       private_network = google_compute_network.vpc.id
-      require_ssl     = true
+      # Cloud SQL Proxy (used by Cloud Run) handles encryption automatically
+      # No need to enforce SSL at the database level
     }
 
     database_flags {

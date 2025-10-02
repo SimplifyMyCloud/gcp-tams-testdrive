@@ -138,11 +138,11 @@ Or use the `deploy.sh` script which handles this automatically:
 All documentation has been updated:
 
 - ✅ `README.md` - Main project docs
-- ✅ `CLAUDE.md` - Architecture guide
-- ✅ `QUICKSTART.md` - Quick start guide
-- ✅ `terraform/README.md` - Terraform-specific docs
+- ✅ `docs/claude.md` - Architecture guide
+- ✅ `docs/quickstart.md` - Quick start guide
+- ✅ `docs/terraform-readme.md` - Terraform-specific docs
 - ✅ `deploy.sh` - Deployment script
 
 ## Questions?
 
-See `terraform/README.md` for detailed Terraform documentation.
+See `docs/terraform-readme.md` for detailed Terraform documentation.

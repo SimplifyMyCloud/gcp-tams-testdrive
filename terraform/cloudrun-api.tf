@@ -73,11 +73,6 @@ resource "google_cloud_run_v2_service" "tams_api" {
       }
     }
 
-    vpc_access {
-      connector = google_vpc_access_connector.connector.id
-      egress    = "PRIVATE_RANGES_ONLY"
-    }
-
     scaling {
       min_instance_count = 0
       max_instance_count = 10
@@ -92,15 +87,19 @@ resource "google_cloud_run_v2_service" "tams_api" {
   depends_on = [
     null_resource.build_tams_api,
     google_secret_manager_secret_version.db_password_version,
+    google_sql_database_instance.tams_db,
     google_project_service.run
   ]
 }
 
-# IAM policy for IAP access to API
-resource "google_cloud_run_service_iam_member" "api_iap_invoker" {
+# IAM policy - require authentication for API access
+# Only authenticated users in iap_users list can invoke
+resource "google_cloud_run_service_iam_member" "api_invoker" {
+  for_each = toset(var.iap_users)
+
   location = google_cloud_run_v2_service.tams_api.location
   service  = google_cloud_run_v2_service.tams_api.name
   role     = "roles/run.invoker"
-  member   = "allUsers" # IAP will handle authentication
+  member   = each.value
   project  = var.project_id
 }

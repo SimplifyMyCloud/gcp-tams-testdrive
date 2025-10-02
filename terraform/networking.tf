@@ -38,19 +38,41 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   depends_on = [google_project_service.servicenetworking]
 }
 
-# Serverless VPC Access Connector for Cloud Run
-resource "google_vpc_access_connector" "connector" {
-  name          = "tams-vpc-connector"
-  region        = var.region
-  network       = google_compute_network.vpc.name
-  ip_cidr_range = "10.8.0.0/28"
-  project       = var.project_id
+# Note: VPC Access Connector not needed - Cloud Run v2 can connect to Cloud SQL
+# directly using the cloud_sql_instances parameter in the Cloud Run service config.
+# This uses the Cloud SQL Admin API and doesn't require VPC peering or connectors.
 
-  depends_on = [
-    google_compute_network.vpc,
-    google_project_service.vpcaccess
-  ]
-}
+# # Serverless VPC Access Connector for Cloud Run
+# resource "google_vpc_access_connector" "connector" {
+#   name    = "tams-vpc-connector"
+#   region  = var.region
+#   project = var.project_id
+#
+#   subnet {
+#     name = google_compute_subnetwork.connector_subnet.name
+#   }
+#
+#   machine_type = "e2-micro"
+#   min_instances = 2
+#   max_instances = 3
+#
+#   depends_on = [
+#     google_compute_subnetwork.connector_subnet,
+#     google_project_service.vpcaccess,
+#     google_project_service.compute
+#   ]
+# }
+#
+# # Dedicated subnet for VPC connector
+# resource "google_compute_subnetwork" "connector_subnet" {
+#   name          = "tams-connector-subnet"
+#   ip_cidr_range = "10.9.0.0/28"
+#   region        = var.region
+#   network       = google_compute_network.vpc.id
+#   project       = var.project_id
+#
+#   private_ip_google_access = true
+# }
 
 # Firewall rule to allow health checks
 resource "google_compute_firewall" "allow_health_check" {
@@ -89,5 +111,5 @@ resource "google_compute_firewall" "allow_internal" {
     protocol = "icmp"
   }
 
-  source_ranges = ["10.0.0.0/24", "10.8.0.0/28"]
+  source_ranges = ["10.0.0.0/24"]
 }

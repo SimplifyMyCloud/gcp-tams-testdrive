@@ -120,7 +120,7 @@ cd terraform && terraform destroy
 
 **Need help?**
 - See: `README.md` for detailed docs
-- See: `CLAUDE.md` for architecture details
+- See: `docs/claude.md` for architecture details
 
 ## Costs
 
