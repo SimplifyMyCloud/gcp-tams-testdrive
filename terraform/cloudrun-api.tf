@@ -28,6 +28,13 @@ resource "google_cloud_run_v2_service" "tams_api" {
   template {
     service_account = google_service_account.tams_api_sa.email
 
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.tams_db.connection_name]
+      }
+    }
+
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/tams/tams-api:latest"
 
@@ -63,6 +70,11 @@ resource "google_cloud_run_v2_service" "tams_api" {
       env {
         name  = "GCS_BUCKET"
         value = google_storage_bucket.media_bucket.name
+      }
+
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
       }
 
       resources {

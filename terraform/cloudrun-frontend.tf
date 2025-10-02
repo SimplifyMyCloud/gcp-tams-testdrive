@@ -40,15 +40,10 @@ resource "google_cloud_run_v2_service" "tams_frontend" {
         value = google_cloud_run_v2_service.tams_api.uri
       }
 
-      env {
-        name  = "PORT"
-        value = "8090"
-      }
-
       resources {
         limits = {
           cpu    = "1"
-          memory = "256Mi"
+          memory = "512Mi"
         }
       }
     }
@@ -71,14 +66,11 @@ resource "google_cloud_run_v2_service" "tams_frontend" {
   ]
 }
 
-# IAM policy - require authentication for Frontend access
-# Only authenticated users in iap_users list can invoke
-resource "google_cloud_run_service_iam_member" "frontend_invoker" {
-  for_each = toset(var.iap_users)
-
+# IAM policy - allow public access to frontend
+resource "google_cloud_run_service_iam_member" "frontend_public" {
   location = google_cloud_run_v2_service.tams_frontend.location
   service  = google_cloud_run_v2_service.tams_frontend.name
   role     = "roles/run.invoker"
-  member   = each.value
+  member   = "allUsers"
   project  = var.project_id
 }

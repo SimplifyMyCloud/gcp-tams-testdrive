@@ -21,7 +21,9 @@
       "Bash(terraform plan:*)",
       "Bash(terraform output:*)",
       "Bash(gcloud run services describe:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(gcloud run services get-iam-policy:*)",
+      "Bash(gcloud projects get-iam-policy:*)"
     ],
     "deny": [],
     "ask": []
