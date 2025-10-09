@@ -13,6 +13,14 @@ resource "google_storage_bucket" "media_bucket" {
     enabled = true
   }
 
+  # CORS configuration for browser video playback
+  cors {
+    origin          = ["*"]
+    method          = ["GET", "HEAD"]
+    response_header = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"]
+    max_age_seconds = 3600
+  }
+
   lifecycle_rule {
     condition {
       age = 90
@@ -54,4 +62,12 @@ resource "google_storage_bucket" "backup_bucket" {
   labels = var.labels
 
   depends_on = [google_project_service.storage]
+}
+
+# Make media bucket publicly readable for demo/POC
+# TODO: Remove this and implement IAP when moving to production
+resource "google_storage_bucket_iam_member" "media_bucket_public_access" {
+  bucket = google_storage_bucket.media_bucket.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
 }

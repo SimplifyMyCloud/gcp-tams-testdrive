@@ -1,6 +1,4 @@
-{{template "base.html" .}}
-
-{{define "content"}}
+{{define "segments-content"}}
 <div class="card">
     <h2>Segments</h2>
     <p>Segments are time-addressable chunks of media within flows.</p>
@@ -15,6 +13,7 @@
                 <th>Time Range End</th>
                 <th>Size</th>
                 <th>Created</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -26,6 +25,7 @@
                 <td class="timestamp">{{.TimerangeEnd}}</td>
                 <td>{{if .SizeBytes}}{{.SizeBytes}} bytes{{else}}-{{end}}</td>
                 <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                <td><a href="/segments/{{.ID}}" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
             </tr>
             {{end}}
         </tbody>

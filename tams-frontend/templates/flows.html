@@ -1,6 +1,4 @@
-{{template "base.html" .}}
-
-{{define "content"}}
+{{define "flows-content"}}
 <div class="card">
     <h2>Flows</h2>
     <p>Flows represent continuous streams of media within a source.</p>
@@ -15,6 +13,7 @@
                 <th>Format</th>
                 <th>Codec</th>
                 <th>Created</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -26,6 +25,7 @@
                 <td>{{.Format}}</td>
                 <td>{{.Codec}}</td>
                 <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                <td><a href="/flows/{{.ID}}" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
             </tr>
             {{end}}
         </tbody>

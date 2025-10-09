@@ -1,6 +1,4 @@
-{{template "base.html" .}}
-
-{{define "content"}}
+{{define "sources-content"}}
 <div class="card">
     <h2>Sources</h2>
     <p>Sources represent top-level media sources in TAMS.</p>
@@ -13,6 +11,7 @@
                 <th>Label</th>
                 <th>Description</th>
                 <th>Created</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -22,6 +21,7 @@
                 <td>{{.Label}}</td>
                 <td>{{.Description}}</td>
                 <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                <td><a href="/sources/{{.ID}}" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
             </tr>
             {{end}}
         </tbody>

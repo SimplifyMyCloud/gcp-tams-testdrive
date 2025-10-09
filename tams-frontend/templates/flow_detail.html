@@ -1,0 +1,111 @@
+{{define "flow-detail-content"}}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Flow Details</h2>
+        <a href="/flows" class="btn" style="background: #666;">Back to Flows</a>
+    </div>
+
+    <table style="margin-top: 1rem;">
+        <tr>
+            <th style="width: 200px;">ID</th>
+            <td><span class="badge">{{.Flow.ID}}</span></td>
+        </tr>
+        <tr>
+            <th>Label</th>
+            <td>{{.Flow.Label}}</td>
+        </tr>
+        {{if .Source.ID}}
+        <tr>
+            <th>Source</th>
+            <td>
+                <a href="/sources/{{.Source.ID}}" style="color: #1a73e8; text-decoration: none;">
+                    {{.Source.Label}} ({{.Source.ID}})
+                </a>
+            </td>
+        </tr>
+        {{else}}
+        <tr>
+            <th>Source ID</th>
+            <td>{{.Flow.SourceID}}</td>
+        </tr>
+        {{end}}
+        {{if .Flow.Description}}
+        <tr>
+            <th>Description</th>
+            <td>{{.Flow.Description}}</td>
+        </tr>
+        {{end}}
+        <tr>
+            <th>Format</th>
+            <td>{{.Flow.Format}}</td>
+        </tr>
+        {{if .Flow.Codec}}
+        <tr>
+            <th>Codec</th>
+            <td>{{.Flow.Codec}}</td>
+        </tr>
+        {{end}}
+        {{if .Flow.TimerangeStart}}
+        <tr>
+            <th>Timerange Start</th>
+            <td class="timestamp">{{.Flow.TimerangeStart}}</td>
+        </tr>
+        {{end}}
+        {{if .Flow.TimerangeEnd}}
+        <tr>
+            <th>Timerange End</th>
+            <td class="timestamp">{{.Flow.TimerangeEnd}}</td>
+        </tr>
+        {{end}}
+        <tr>
+            <th>Created At</th>
+            <td class="timestamp">{{.Flow.CreatedAt.Format "2006-01-02 15:04:05 MST"}}</td>
+        </tr>
+        <tr>
+            <th>Updated At</th>
+            <td class="timestamp">{{.Flow.UpdatedAt.Format "2006-01-02 15:04:05 MST"}}</td>
+        </tr>
+        {{if .Flow.Tags}}
+        <tr>
+            <th>Tags</th>
+            <td><pre style="margin: 0;">{{.Flow.Tags}}</pre></td>
+        </tr>
+        {{end}}
+    </table>
+</div>
+
+<div class="card">
+    <h2>Segments in this Flow</h2>
+    {{if .Segments}}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Time Range Start</th>
+                <th>Time Range End</th>
+                <th>Duration</th>
+                <th>Size</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Segments}}
+            <tr>
+                <td><span class="badge">{{.ID}}</span></td>
+                <td class="timestamp">{{.TimerangeStart}}</td>
+                <td class="timestamp">{{.TimerangeEnd}}</td>
+                <td>{{if .Duration}}{{.Duration}}s{{else}}-{{end}}</td>
+                <td>{{if .SizeBytes}}{{.SizeBytes}} bytes{{else}}-{{end}}</td>
+                <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                <td><a href="/segments/{{.ID}}" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p style="margin-top: 1rem; color: #666;">No segments found for this flow.</p>
+    <a href="/segments/upload" class="btn" style="margin-top: 1rem;">Upload Segment</a>
+    {{end}}
+</div>
+{{end}}

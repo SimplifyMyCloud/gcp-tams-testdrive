@@ -3,7 +3,7 @@
 # Build and push TAMS API container
 resource "null_resource" "build_tams_api" {
   triggers = {
-    always_run = timestamp()
+    source_code_hash = sha256(join("", [for f in fileset("${path.module}/../tams-api", "**") : filesha256("${path.module}/../tams-api/${f}")]))
   }
 
   provisioner "local-exec" {
@@ -104,14 +104,12 @@ resource "google_cloud_run_v2_service" "tams_api" {
   ]
 }
 
-# IAM policy - require authentication for API access
-# Only authenticated users in iap_users list can invoke
-resource "google_cloud_run_service_iam_member" "api_invoker" {
-  for_each = toset(var.iap_users)
-
+# IAM policy - allow public access to API (for testing)
+# TODO: Lock down behind IAP after testing
+resource "google_cloud_run_service_iam_member" "api_public" {
   location = google_cloud_run_v2_service.tams_api.location
   service  = google_cloud_run_v2_service.tams_api.name
   role     = "roles/run.invoker"
-  member   = each.value
+  member   = "allUsers"
   project  = var.project_id
 }

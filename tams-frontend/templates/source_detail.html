@@ -1,0 +1,72 @@
+{{define "source-detail-content"}}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Source Details</h2>
+        <a href="/sources" class="btn" style="background: #666;">Back to Sources</a>
+    </div>
+
+    <table style="margin-top: 1rem;">
+        <tr>
+            <th style="width: 200px;">ID</th>
+            <td><span class="badge">{{.Source.ID}}</span></td>
+        </tr>
+        <tr>
+            <th>Label</th>
+            <td>{{.Source.Label}}</td>
+        </tr>
+        {{if .Source.Description}}
+        <tr>
+            <th>Description</th>
+            <td>{{.Source.Description}}</td>
+        </tr>
+        {{end}}
+        <tr>
+            <th>Created At</th>
+            <td class="timestamp">{{.Source.CreatedAt.Format "2006-01-02 15:04:05 MST"}}</td>
+        </tr>
+        <tr>
+            <th>Updated At</th>
+            <td class="timestamp">{{.Source.UpdatedAt.Format "2006-01-02 15:04:05 MST"}}</td>
+        </tr>
+        {{if .Source.Tags}}
+        <tr>
+            <th>Tags</th>
+            <td><pre style="margin: 0;">{{.Source.Tags}}</pre></td>
+        </tr>
+        {{end}}
+    </table>
+</div>
+
+<div class="card">
+    <h2>Flows in this Source</h2>
+    {{if .Flows}}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Label</th>
+                <th>Format</th>
+                <th>Codec</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Flows}}
+            <tr>
+                <td><span class="badge">{{.ID}}</span></td>
+                <td>{{.Label}}</td>
+                <td>{{.Format}}</td>
+                <td>{{.Codec}}</td>
+                <td class="timestamp">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                <td><a href="/flows/{{.ID}}" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p style="margin-top: 1rem; color: #666;">No flows found for this source.</p>
+    <a href="/flows" class="btn" style="margin-top: 1rem;">Create Flow</a>
+    {{end}}
+</div>
+{{end}}

@@ -1,3 +1,4 @@
+{{define "base.html"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -126,7 +127,15 @@
         </div>
     </header>
     <main class="container">
-        {{template "content" .}}
+        {{if eq .ContentTemplate "index-content"}}{{template "index-content" .}}{{end}}
+        {{if eq .ContentTemplate "sources-content"}}{{template "sources-content" .}}{{end}}
+        {{if eq .ContentTemplate "flows-content"}}{{template "flows-content" .}}{{end}}
+        {{if eq .ContentTemplate "segments-content"}}{{template "segments-content" .}}{{end}}
+        {{if eq .ContentTemplate "upload-content"}}{{template "upload-content" .}}{{end}}
+        {{if eq .ContentTemplate "source-detail-content"}}{{template "source-detail-content" .}}{{end}}
+        {{if eq .ContentTemplate "flow-detail-content"}}{{template "flow-detail-content" .}}{{end}}
+        {{if eq .ContentTemplate "segment-detail-content"}}{{template "segment-detail-content" .}}{{end}}
     </main>
 </body>
 </html>
+{{end}}

@@ -28,6 +28,13 @@ resource "google_secret_manager_secret_iam_member" "api_secret_access" {
   member    = "serviceAccount:${google_service_account.tams_api_sa.email}"
 }
 
+# Grant service account token creator role to API service account (for signed URLs)
+resource "google_service_account_iam_member" "api_self_token_creator" {
+  service_account_id = google_service_account.tams_api_sa.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:${google_service_account.tams_api_sa.email}"
+}
+
 # Service account for TAMS Frontend
 resource "google_service_account" "tams_frontend_sa" {
   account_id   = "tams-frontend-sa"

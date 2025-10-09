@@ -1,0 +1,211 @@
+{{define "segment-detail-content"}}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Segment Details</h2>
+        <a href="/segments" class="btn" style="background: #666;">Back to Segments</a>
+    </div>
+
+    <table style="margin-top: 1rem;">
+        <tr>
+            <th style="width: 200px;">ID</th>
+            <td><span class="badge">{{.Segment.ID}}</span></td>
+        </tr>
+        {{if .Flow.ID}}
+        <tr>
+            <th>Flow</th>
+            <td>
+                <a href="/flows/{{.Flow.ID}}" style="color: #1a73e8; text-decoration: none;">
+                    {{.Flow.Label}} ({{.Flow.ID}})
+                </a>
+            </td>
+        </tr>
+        {{else}}
+        <tr>
+            <th>Flow ID</th>
+            <td>{{.Segment.FlowID}}</td>
+        </tr>
+        {{end}}
+        <tr>
+            <th>Timerange Start</th>
+            <td class="timestamp">{{.Segment.TimerangeStart}}</td>
+        </tr>
+        <tr>
+            <th>Timerange End</th>
+            <td class="timestamp">{{.Segment.TimerangeEnd}}</td>
+        </tr>
+        {{if .Segment.Duration}}
+        <tr>
+            <th>Duration</th>
+            <td>{{.Segment.Duration}} seconds</td>
+        </tr>
+        {{end}}
+        {{if .Segment.SizeBytes}}
+        <tr>
+            <th>File Size</th>
+            <td>{{.Segment.SizeBytes}} bytes</td>
+        </tr>
+        {{end}}
+        <tr>
+            <th>Storage URI</th>
+            <td style="word-break: break-all; font-family: monospace; font-size: 0.875rem;">{{.Segment.StorageURI}}</td>
+        </tr>
+        <tr>
+            <th>Created At</th>
+            <td class="timestamp">{{.Segment.CreatedAt.Format "2006-01-02 15:04:05 MST"}}</td>
+        </tr>
+        {{if .Segment.Tags}}
+        <tr>
+            <th>Tags</th>
+            <td><pre style="margin: 0;">{{.Segment.Tags}}</pre></td>
+        </tr>
+        {{end}}
+    </table>
+
+    {{if .DownloadURL}}
+    <div style="margin-top: 1.5rem;">
+        <h3 style="margin-bottom: 1rem; color: #1a73e8; font-size: 1.1rem;">Video Player</h3>
+        <video
+            controls
+            preload="metadata"
+            style="width: 100%; max-width: 100%; border-radius: 4px; background: #000;"
+            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450'%3E%3Crect fill='%23000' width='800' height='450'/%3E%3Ctext fill='%23fff' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EClick play to load video%3C/text%3E%3C/svg%3E">
+            <source src="{{.DownloadURL}}" type="video/x-matroska">
+            <source src="{{.DownloadURL}}" type="video/mp4">
+            Your browser does not support the video tag. Please <a href="{{.DownloadURL}}" style="color: #1a73e8;">download the video</a> instead.
+        </video>
+        <p style="margin-top: 0.5rem; color: #666; font-size: 0.875rem;">
+            💡 Tip: Use browser controls to play, pause, seek, and adjust volume. Video URL expires in 1 hour.
+        </p>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: flex-start;">
+        <a href="{{.DownloadURL}}" class="btn" target="_blank">Download Media File</a>
+        <button id="analyzeBtn" class="btn" style="background: #34a853;" onclick="analyzeVideo()">Analyze Video</button>
+        <div id="analyzeStatus" style="padding: 0.75rem; display: none; border-radius: 4px;"></div>
+    </div>
+    <p style="margin-top: 0.5rem; color: #666; font-size: 0.875rem;">
+        Download link expires in 1 hour. Click "Analyze Video" to detect logos and objects.
+    </p>
+    {{end}}
+</div>
+
+<script>
+async function analyzeVideo() {
+    const btn = document.getElementById('analyzeBtn');
+    const status = document.getElementById('analyzeStatus');
+
+    // Disable button and show progress
+    btn.disabled = true;
+    btn.textContent = 'Analyzing...';
+    status.style.display = 'block';
+    status.style.background = '#e8f0fe';
+    status.style.color = '#1a73e8';
+    status.textContent = 'Video analysis in progress... This may take 1-2 minutes.';
+
+    try {
+        const response = await fetch('https://tams-api-msibaaisiq-uw.a.run.app/segments/{{.Segment.ID}}/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Analysis failed');
+        }
+
+        // Show success and reload
+        status.style.background = '#e6f4ea';
+        status.style.color = '#1e8e3e';
+        status.textContent = 'Analysis complete! Reloading page...';
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+
+    } catch (error) {
+        // Show error
+        status.style.background = '#fce8e6';
+        status.style.color = '#d93025';
+        status.textContent = 'Analysis failed. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Analyze Video';
+    }
+}
+</script>
+
+{{if .Flow.ID}}
+<div class="card">
+    <h2>Related Information</h2>
+    <table>
+        <tr>
+            <th style="width: 200px;">Flow</th>
+            <td>
+                <a href="/flows/{{.Flow.ID}}" style="color: #1a73e8; text-decoration: none;">
+                    {{.Flow.Label}} ({{.Flow.ID}})
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <th>Format</th>
+            <td>{{.Flow.Format}}</td>
+        </tr>
+        {{if .Flow.Codec}}
+        <tr>
+            <th>Codec</th>
+            <td>{{.Flow.Codec}}</td>
+        </tr>
+        {{end}}
+    </table>
+</div>
+{{end}}
+
+{{if .LogosData}}
+<div class="card">
+    <h2 style="color: #34a853;">Video Analysis Results</h2>
+    <p style="color: #666; font-size: 0.875rem; margin-bottom: 1rem;">
+        Detected logos and brands using Google Cloud Video Intelligence API
+    </p>
+
+    {{range .LogosData}}
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #34a853;">
+        <h3 style="margin-bottom: 0.5rem; color: #1a73e8; font-size: 1rem; word-wrap: break-word;">{{index . "entity"}}</h3>
+        {{if index . "entity_id"}}
+        <p style="color: #666; font-size: 0.875rem; margin-bottom: 0.5rem; word-wrap: break-word; overflow-wrap: break-word;">Entity ID: {{index . "entity_id"}}</p>
+        {{end}}
+
+        <div style="overflow-x: auto; margin-top: 0.5rem;">
+            <table style="background: white; min-width: 100%; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="background: #e8f0fe; white-space: nowrap;">Start Time</th>
+                        <th style="background: #e8f0fe; white-space: nowrap;">End Time</th>
+                        <th style="background: #e8f0fe; white-space: nowrap;">Confidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range index . "segments"}}
+                    <tr>
+                        <td style="white-space: nowrap;">{{printf "%.2f" (index . "start_time")}}s</td>
+                        <td style="white-space: nowrap;">{{printf "%.2f" (index . "end_time")}}s</td>
+                        <td>
+                            <span style="padding: 0.25rem 0.5rem; background: #e6f4ea; color: #1e8e3e; border-radius: 4px; font-size: 0.875rem; white-space: nowrap;">
+                                {{printf "%.1f%%" (index . "confidence")}}
+                            </span>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{end}}
+
+    {{if .AnalysisTimestamp}}
+    <p style="color: #666; font-size: 0.875rem; margin-top: 1rem;">
+        Analysis completed: {{.AnalysisTimestamp}}
+    </p>
+    {{end}}
+</div>
+{{end}}
+{{end}}

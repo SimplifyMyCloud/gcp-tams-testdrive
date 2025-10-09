@@ -3,7 +3,7 @@
 # Build and push TAMS Frontend container
 resource "null_resource" "build_tams_frontend" {
   triggers = {
-    always_run = timestamp()
+    source_code_hash = sha256(join("", [for f in fileset("${path.module}/../tams-frontend", "**") : filesha256("${path.module}/../tams-frontend/${f}")]))
   }
 
   provisioner "local-exec" {

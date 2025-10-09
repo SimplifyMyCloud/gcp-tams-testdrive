@@ -39,3 +39,9 @@ terraform.rc
 # Claude
 ./claude
 CLAUDE.md
+
+# Video files
+./archive
+./archive/chunked-archive
+*.mp4
+*.mkv

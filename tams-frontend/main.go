@@ -90,11 +90,14 @@ func main() {
 	r.HandleFunc("/health", healthHandler).Methods("GET")
 	r.HandleFunc("/sources", listSourcesHandler).Methods("GET")
 	r.HandleFunc("/sources/create", createSourceHandler).Methods("POST")
+	r.HandleFunc("/sources/{source_id}", viewSourceHandler).Methods("GET")
 	r.HandleFunc("/flows", listFlowsHandler).Methods("GET")
 	r.HandleFunc("/flows/create", createFlowHandler).Methods("POST")
+	r.HandleFunc("/flows/{flow_id}", viewFlowHandler).Methods("GET")
 	r.HandleFunc("/segments", listSegmentsHandler).Methods("GET")
 	r.HandleFunc("/segments/create", createSegmentHandler).Methods("POST")
 	r.HandleFunc("/segments/upload", uploadSegmentPageHandler).Methods("GET")
+	r.HandleFunc("/segments/{segment_id}", viewSegmentHandler).Methods("GET")
 
 	// Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -116,9 +119,10 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"Title": "TAMS Test Drive",
+		"Title":           "TAMS Test Drive",
+		"ContentTemplate": "index-content",
 	}
-	templates.ExecuteTemplate(w, "index.html", data)
+	templates.ExecuteTemplate(w, "base.html", data)
 }
 
 func listSourcesHandler(w http.ResponseWriter, r *http.Request) {
@@ -130,6 +134,13 @@ func listSourcesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("API error: %s", body), resp.StatusCode)
+		log.Printf("API returned status %d: %s", resp.StatusCode, body)
+		return
+	}
+
 	var sources []Source
 	if err := json.NewDecoder(resp.Body).Decode(&sources); err != nil {
 		http.Error(w, "Error decoding sources", http.StatusInternalServerError)
@@ -138,10 +149,11 @@ func listSourcesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":   "Sources",
-		"Sources": sources,
+		"Title":           "Sources",
+		"Sources":         sources,
+		"ContentTemplate": "sources-content",
 	}
-	templates.ExecuteTemplate(w, "sources.html", data)
+	templates.ExecuteTemplate(w, "base.html", data)
 }
 
 func createSourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -206,11 +218,12 @@ func listFlowsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":   "Flows",
-		"Flows":   flows,
-		"Sources": sources,
+		"Title":           "Flows",
+		"Flows":           flows,
+		"Sources":         sources,
+		"ContentTemplate": "flows-content",
 	}
-	templates.ExecuteTemplate(w, "flows.html", data)
+	templates.ExecuteTemplate(w, "base.html", data)
 }
 
 func createFlowHandler(w http.ResponseWriter, r *http.Request) {
@@ -278,11 +291,12 @@ func listSegmentsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":    "Segments",
-		"Segments": segments,
-		"Flows":    flows,
+		"Title":           "Segments",
+		"Segments":        segments,
+		"Flows":           flows,
+		"ContentTemplate": "segments-content",
 	}
-	templates.ExecuteTemplate(w, "segments.html", data)
+	templates.ExecuteTemplate(w, "base.html", data)
 }
 
 func uploadSegmentPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -295,10 +309,11 @@ func uploadSegmentPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title": "Upload Segment",
-		"Flows": flows,
+		"Title":           "Upload Segment",
+		"Flows":           flows,
+		"ContentTemplate": "upload-content",
 	}
-	templates.ExecuteTemplate(w, "upload.html", data)
+	templates.ExecuteTemplate(w, "base.html", data)
 }
 
 func createSegmentHandler(w http.ResponseWriter, r *http.Request) {
@@ -363,4 +378,197 @@ func createSegmentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/segments", http.StatusSeeOther)
+}
+
+func viewSourceHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	sourceID := vars["source_id"]
+
+	resp, err := http.Get(config.TamsAPIURL + "/sources/" + sourceID)
+	if err != nil {
+		http.Error(w, "Error fetching source", http.StatusInternalServerError)
+		log.Printf("Error fetching source: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		http.Error(w, "Source not found", http.StatusNotFound)
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("API error: %s", body), resp.StatusCode)
+		return
+	}
+
+	var source Source
+	if err := json.NewDecoder(resp.Body).Decode(&source); err != nil {
+		http.Error(w, "Error decoding source", http.StatusInternalServerError)
+		log.Printf("Error decoding source: %v", err)
+		return
+	}
+
+	// Get flows for this source
+	flowsResp, err := http.Get(config.TamsAPIURL + "/flows?source_id=" + sourceID)
+	var flows []Flow
+	if err == nil && flowsResp.StatusCode == http.StatusOK {
+		json.NewDecoder(flowsResp.Body).Decode(&flows)
+		flowsResp.Body.Close()
+	}
+
+	data := map[string]interface{}{
+		"Title":           "Source: " + source.Label,
+		"Source":          source,
+		"Flows":           flows,
+		"ContentTemplate": "source-detail-content",
+	}
+	templates.ExecuteTemplate(w, "base.html", data)
+}
+
+func viewFlowHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	flowID := vars["flow_id"]
+
+	resp, err := http.Get(config.TamsAPIURL + "/flows/" + flowID)
+	if err != nil {
+		http.Error(w, "Error fetching flow", http.StatusInternalServerError)
+		log.Printf("Error fetching flow: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		http.Error(w, "Flow not found", http.StatusNotFound)
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("API error: %s", body), resp.StatusCode)
+		return
+	}
+
+	var flow Flow
+	if err := json.NewDecoder(resp.Body).Decode(&flow); err != nil {
+		http.Error(w, "Error decoding flow", http.StatusInternalServerError)
+		log.Printf("Error decoding flow: %v", err)
+		return
+	}
+
+	// Get source for this flow
+	sourceResp, err := http.Get(config.TamsAPIURL + "/sources/" + flow.SourceID)
+	var source Source
+	if err == nil && sourceResp.StatusCode == http.StatusOK {
+		json.NewDecoder(sourceResp.Body).Decode(&source)
+		sourceResp.Body.Close()
+	}
+
+	// Get segments for this flow
+	segmentsResp, err := http.Get(config.TamsAPIURL + "/segments?flow_id=" + flowID)
+	var segments []Segment
+	if err == nil && segmentsResp.StatusCode == http.StatusOK {
+		json.NewDecoder(segmentsResp.Body).Decode(&segments)
+		segmentsResp.Body.Close()
+	}
+
+	data := map[string]interface{}{
+		"Title":           "Flow: " + flow.Label,
+		"Flow":            flow,
+		"Source":          source,
+		"Segments":        segments,
+		"ContentTemplate": "flow-detail-content",
+	}
+	templates.ExecuteTemplate(w, "base.html", data)
+}
+
+func viewSegmentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	segmentID := vars["segment_id"]
+
+	resp, err := http.Get(config.TamsAPIURL + "/segments/" + segmentID)
+	if err != nil {
+		http.Error(w, "Error fetching segment", http.StatusInternalServerError)
+		log.Printf("Error fetching segment: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		http.Error(w, "Segment not found", http.StatusNotFound)
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("API error: %s", body), resp.StatusCode)
+		return
+	}
+
+	var segment Segment
+	if err := json.NewDecoder(resp.Body).Decode(&segment); err != nil {
+		http.Error(w, "Error decoding segment", http.StatusInternalServerError)
+		log.Printf("Error decoding segment: %v", err)
+		return
+	}
+
+	// Get flow for this segment
+	flowResp, err := http.Get(config.TamsAPIURL + "/flows/" + segment.FlowID)
+	var flow Flow
+	if err == nil && flowResp.StatusCode == http.StatusOK {
+		json.NewDecoder(flowResp.Body).Decode(&flow)
+		flowResp.Body.Close()
+	}
+
+	// Get download URL
+	downloadResp, err := http.Get(config.TamsAPIURL + "/segments/" + segmentID + "/download")
+	var downloadURL string
+	if err == nil && downloadResp.StatusCode == http.StatusOK {
+		var downloadData map[string]interface{}
+		json.NewDecoder(downloadResp.Body).Decode(&downloadData)
+		if url, ok := downloadData["url"].(string); ok {
+			downloadURL = url
+		}
+		downloadResp.Body.Close()
+	}
+
+	// Extract logos data from tags if available
+	var logosData []map[string]interface{}
+	var analysisTimestamp string
+	if segment.Tags != nil {
+		if logos, ok := segment.Tags["logos"].([]interface{}); ok {
+			for _, logo := range logos {
+				if logoMap, ok := logo.(map[string]interface{}); ok {
+					// Convert confidence values to percentages
+					if segments, ok := logoMap["segments"].([]interface{}); ok {
+						for i, seg := range segments {
+							if segMap, ok := seg.(map[string]interface{}); ok {
+								if conf, ok := segMap["confidence"].(float64); ok {
+									segMap["confidence"] = conf * 100
+									segments[i] = segMap
+								}
+							}
+						}
+						logoMap["segments"] = segments
+					}
+					logosData = append(logosData, logoMap)
+				}
+			}
+		}
+		if timestamp, ok := segment.Tags["analysis_timestamp"].(string); ok {
+			analysisTimestamp = timestamp
+		}
+	}
+
+	data := map[string]interface{}{
+		"Title":             "Segment: " + segment.ID,
+		"Segment":           segment,
+		"Flow":              flow,
+		"DownloadURL":       downloadURL,
+		"LogosData":         logosData,
+		"AnalysisTimestamp": analysisTimestamp,
+		"ContentTemplate":   "segment-detail-content",
+	}
+	templates.ExecuteTemplate(w, "base.html", data)
 }
